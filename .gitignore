@@ -1,7 +1,19 @@
+# Folder / files
+images/
+databases/
+*.csv
+*.npy
+*.pkl
+*.jpg
+*.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Mac os
+.DS_Store
 
 # C extensions
 *.so
