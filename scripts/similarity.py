@@ -1,3 +1,4 @@
+from tqdm import tqdm
 import pandas as pd
 from scipy.spatial import distance
 #from sklearn.metrics import jaccard_score
@@ -40,10 +41,10 @@ def similarity_computation(input_vector,
         ascending=False
         
     similarities = []
-    for v in reference_vectors:
-        similarities.append(scoring_method(input_vector, v))
+    # Verwende tqdm, um den Fortschritt anzuzeigen
+    with tqdm(total=len(reference_vectors)) as pbar:
+        for v in reference_vectors:
+            similarities.append(scoring_method(input_vector, v))
+            pbar.update(1)  # Aktualisiere den Fortschritt um 1
 
-    return pd.DataFrame(similarities,
-                        columns=["similarity_measure"]
-                       ).sort_values("similarity_measure",
-                                    ascending=ascending)
+    return pd.DataFrame(similarities, columns=["similarity_measure"]).sort_values("similarity_measure",ascending=ascending)
