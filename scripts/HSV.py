@@ -1,4 +1,3 @@
-import numpy as np
 from sklearn.decomposition import PCA
 import cv2
 from tqdm import tqdm
@@ -70,5 +69,4 @@ if __name__ == "__main__":
     result
 
     #print(V_color_profile(result.loc[0, "image_path"]).shape)
-
     create_color_vec(result, metric="v",test=True)
