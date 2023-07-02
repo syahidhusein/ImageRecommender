@@ -1,21 +1,19 @@
 import numpy as np
 import pickle
-import os
 
 def merge_pkls(pkl_name_list, out_name="cnn_embedding.pkl"):
     if not isinstance(pkl_name_list, list):
         raise ValueError("pkl_name_list has to be an list of .pkl files")
-    # Erstelle eine leere Liste zum Speichern der kombinierten Daten
+    # Create an empty list to store the combined data
     combined_data = []
-    # Durchlaufe alle Dateien im Eingabeverzeichnis
+    # Run through all files in the input directory
     for merge_pkl in pkl_name_list:
         with open(merge_pkl, "rb") as file:
             data = pickle.load(file)
-            
-            # Füge die Daten zur kombinierten Liste hinzu
+            # Add the data to the combined list
             combined_data.extend(data)
     
-    # Speichere die kombinierten Daten in einer Ausgabedatei
+    # Save the combined data in an output file
     with open(out_name, "wb") as file:
         pickle.dump(combined_data, file)
 

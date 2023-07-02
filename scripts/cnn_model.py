@@ -148,6 +148,7 @@ def create_cnn_embedding(results, model_name, pooling, test=False, log_file=None
 if __name__ == "__main__":
     import pandas as pd
     import psutil
+    # If the CNN model is executed from here, import save_load must be commented out in the main script above
     import save_load
     results = pd.read_csv("image_paths.csv")
 

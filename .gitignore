@@ -2,11 +2,11 @@
 images/
 databases/
 *.csv
+*.db
 *.npy
 *.pkl
 *.jpg
 *.png
-*.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
