@@ -1,7 +1,8 @@
 import numpy as np
 import pickle
+import os
 
-def merge_pkls(pkl_name_list, out_name="cnn_embedding.pkl"):
+def merge_pkls(pkl_name_list, out_name="merge_file.pkl"):
     if not isinstance(pkl_name_list, list):
         raise ValueError("pkl_name_list has to be an list of .pkl files")
     # Create an empty list to store the combined data
@@ -24,12 +25,22 @@ def save_pkl(arr_vector, name):
     if not isinstance(array, np.ndarray):
         raise ValueError("arr_vector has to be an array")
     
+    if not os.path.exists("embeddings"):
+        os.makedirs("embeddings")
+    
     # Save the embeddings array to a file using pickle
-    with open(name, 'wb') as file:
+    file_path = os.path.join("embeddings", name)
+    with open(file_path, 'wb') as file:
         pickle.dump(array, file)
 
 # Load the saved embeddings array from the file
 def load_pkl(name):
-    with open(name, 'rb') as file:
+    file_path = os.path.join("embeddings", name)
+    with open(file_path, 'rb') as file:
         array = pickle.load(file)
         return array
+    
+if __name__ == "__main__":
+
+    pkl_list = ["cnn_embedding1.pkl", "cnn_embedding2.pkl", "cnn_embedding3.pkl", "cnn_embedding4.pkl", "cnn_embedding5.pkl", "cnn_embedding6.pkl", "cnn_embedding7.pkl", "cnn_embedding8.pkl"]
+    merge_pkls(pkl_list)

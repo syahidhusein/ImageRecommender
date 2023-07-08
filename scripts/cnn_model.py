@@ -3,10 +3,21 @@ from tensorflow.keras.applications.mobilenet import MobileNet, preprocess_input
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import img_to_array, load_img
 from tensorflow.keras.layers import GlobalAveragePooling2D, MaxPooling2D
+import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
 import logging
 from scripts import save_load
+
+# Konfiguration der TensorFlow-GPU-Einstellungen
+#tf.config.set_visible_devices(tf.config.list_physical_devices('GPU'), 'GPU')
+#tf.config.experimental.set_memory_growth(tf.config.list_physical_devices('GPU')[0], True)
+# check if gpu available
+if tf.config.list_physical_devices('GPU'):
+    print('GPU gefunden')
+    
+else:
+    print('Keine GPU gefunden')
 
 # Here we create arrays for each image that we will use for the similarity functions
 class cnn_model():
@@ -34,65 +45,20 @@ class cnn_model():
         else:
             raise ValueError(f'Invalid pooling metric "{self.pooling}"')
 
-    def extract_features(self, image_path):
+    def processing_img(self, image_path):
         img = load_img(image_path, target_size=(128, 128))
         img = img_to_array(img)
         img = np.expand_dims(img, axis=0)
         img = preprocess_input(img)
-        features = self.model.predict(img)
-        return features.flatten()
-
-### !!!!! Just for testing !!!!!
-## Generate all together at once
-# Here we try to generate vectors for all images at once (not efficient!!)
-def __embedding_test__(results, model_name, pooling, test=False, log_file=None):
-    cnn_vectors = []
-    model = cnn_model(name=model_name, pooling=pooling)
+        return img
     
-    total_iterations = len(results) if not test else 1201  # Number of iterations based on the 'test' flag
+    def extract_feature(self, img):
+        features = self.model.predict(img)
+        return features
 
-    # Set up logging
-    if log_file:
-        logging.basicConfig(filename=log_file, level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-    # Check if a previous state is logged
-    start_from = 0
-    if log_file:
-        with open(log_file, "r") as f:
-            lines = f.readlines()
-            if lines:
-                last_line = lines[-1]
-                last_iteration = int(last_line.split(" - ")[2].split(":")[1])
-                start_from = last_iteration + 1
-
-   # logging info 
-    if start_from > 0:
-        msg = f"__Continue processing from i={start_from}__"
-        print(msg)
-        logging.info(msg)
-
-    # iterate over the rows in the dataframe and extract cnn embeddings
-    for index, row in tqdm(results.iterrows(), total=total_iterations, desc="Progress", initial=start_from):
-        if index < start_from:
-            continue
-
-        img_path = row["image_path"]
-        cnn_vector = model.extract_features(img_path)
-        cnn_vectors.append(cnn_vector)
-        
-        if test and index == 1200:
-            break
-
-        # Log the current iteration
-        if log_file:
-            logging.info("Current iteration: {}".format(index))
-
-    return cnn_vectors
-
-## Generate in batches
+## Generate embeddings in batches
 # Here we try to generate vectors for images by batches
-def create_cnn_embedding(results, model_name, pooling, test=False, log_file=None, pkl_save=None):
-    batch_size = 50
+def create_cnn_embedding(results, model_name, pooling, batch_size=100, test=False, log_file=None, pkl_save=None):
     cnn_vectors = []
     model = cnn_model(name=model_name, pooling=pooling)
 
@@ -126,9 +92,12 @@ def create_cnn_embedding(results, model_name, pooling, test=False, log_file=None
 
         batch_vectors = []
         for img in img_paths:
-            img_vector = model.extract_features(img)  # Extract vector
+            img_vector = model.processing_img(img)  # Extract vector
             batch_vectors.append(img_vector)
 
+        batch_vectors = np.concatenate(batch_vectors, axis=0) #stacking the arrays among each other
+        
+        batch_vectors = model.extract_feature(batch_vectors)
         cnn_vectors.extend(batch_vectors)  # Add the batch vectors to the main list
 
         if test and (i+1) * batch_size >= 1000:
@@ -142,35 +111,22 @@ def create_cnn_embedding(results, model_name, pooling, test=False, log_file=None
         if log_file:
             logging.info("Current iteration: {}".format(i))
 
-
     return cnn_vectors
 
 if __name__ == "__main__":
+    #import os
+    #os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    import tensorflow as tf
+    print(tf.config.list_physical_devices('GPU'))
     import pandas as pd
-    import psutil
-    # If the CNN model is executed from here, import save_load must be commented out in the main script above
-    import save_load
+    # If the CNN model is executed from here, import save_load must be commented out in the main script above in order to run it
+    #import save_load
     results = pd.read_csv("image_paths.csv")
-
-    # Get memory usage in bytes
-    memory_usage = psutil.virtual_memory().used
-    # Convert memory usage to human-readable format
-    memory_usage_readable = psutil.virtual_memory().used / (1024 ** 2)  # Convert to megabytes
 
     cnn_test = create_cnn_embedding(results,
                                     model_name="mobilenet", 
                                     pooling="globavg", 
+                                    batch_size=100,
                                     test=True, 
-                                    log_file="logfile.log", 
-                                    pkl_save="cnn_embedding.pkl")
-
-    # Get memory usage in bytes
-    memory_usage_altogether = psutil.virtual_memory().used - memory_usage
-    print(f"Memory Usage when generating altogether: {memory_usage_altogether} bytes")
-    # Convert memory usage to human-readable format
-    memory_usage_readable_altogether = psutil.virtual_memory().used / (1024 ** 2) - memory_usage_readable  # Convert to megabytes
-    print(f"Readable Memory Usage when generating altogether: {memory_usage_readable_altogether} MB")
-
-    print("test the length of vectors")
-    print(len(results))
-    print(len(cnn_test))
+                                    log_file=None, 
+                                    pkl_save=None)
