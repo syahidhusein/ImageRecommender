@@ -6,13 +6,8 @@ import os
 # import of own functions
 from scripts import save_load, plot_funktion, similarity, HSV, cnn_model
 
-def unknown_paths():
-    folder_path = "unknown_images"
+def unknown_paths(folder_path):
     file_paths = []
-
-    # Create the database folder if it does not exist
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
 
     # Go through the files in the folder and extract the file paths
     for root, dirs, files in os.walk(folder_path):
