@@ -1,8 +1,19 @@
 import cv2
 import matplotlib.pyplot as plt
+import plotly.express as px
+import pandas as pd
+
+# plot function for dimension reduction
+def reduction_plot(embedding_reduced, labels, title=None):
+    df_plot = pd.DataFrame({'x': embedding_reduced[:, 0], 'y': embedding_reduced[:, 1], 'label': labels["label"]})
+    fig = px.scatter(df_plot, x='x', y='y', color='label', opacity=0.3, hover_name=labels["image_path"])
+    
+    fig.update_traces(marker=dict(line=dict(width=0.3, color='DarkSlateGrey')), selector=dict(mode='markers'))
+    fig.update_layout(width=1000, height=800, title=title, title_font=dict(size=24))
+    fig.show()
 
 # Create plots for the top 8 most similar images relative to a subject image
-def images_grid(img_path, sim_score):
+def images_grid(img_path, sim_score, title=None):
     num_images = len(img_path)
     fig, axes = plt.subplots(2, 4, figsize=(12, 6))
     axes = axes.ravel()
@@ -16,6 +27,7 @@ def images_grid(img_path, sim_score):
                      bbox=dict(facecolor='black', edgecolor='white', pad=3.0))
 
     plt.tight_layout()
+    plt.suptitle(title, fontsize=16)
     plt.show()
 
 # Create plots for the top 8 most similar images as histogram

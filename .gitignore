@@ -1,6 +1,8 @@
 # Folder / files
 images/
 databases/
+embeddings/
+unknown_images/
 *.csv
 *.db
 *.npy
