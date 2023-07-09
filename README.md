@@ -13,6 +13,8 @@ Feel free to open a pull request or an issue if you have any suggestions for imp
 
 ## Installation and run
 
+Please note that the access to the dataset via USB is required to run this software.
+
 Download and install:   
 ```
 git clone https://github.com/syahidhusein/ImageRecommender.git  
